@@ -105,18 +105,13 @@ def predict():
         'job': [job]
     })
 
-    # Frequency encoding function
-    def frequency_encoding(data2, columns):
-        freq_encoding = {}
-        for col in columns:
-            freq_encoding[col] = data2[col].value_counts().to_dict()
-        for col in columns:
-            data2[f'{col}_freq'] = data2[col].map(freq_encoding[col])
-        return data2
 
-    # Apply frequency encoding
-    dt_F_enc = frequency_encoding(data2, ['merchant', 'category', 'street', 'city', 'state', 'job'])
-
+    # Frequency encoding
+    categorical_col=['merchant', 'category', 'street', 'city', 'state', 'job']
+    for col in categorical_col:
+        frequency_encoding = data2[col].value_counts()
+        data2[col] = data2[col].map(frequency_encoding)
+   
     data3 = pd.DataFrame({
         'gender': [gender],
         'transaction_time_of_day': [data4['transaction_time_of_day'][0]]
@@ -135,27 +130,28 @@ def predict():
     data3 = data3[expected_columns]
 
     new_data1 = pd.concat([new_data, data3], axis=1)
-    new_data2 = pd.concat([new_data1, dt_F_enc], axis=1)
+    new_data2 = pd.concat([new_data1, data2], axis=1)
 
     print("Prediction data columns:", new_data2.columns)
 
     # Ensure all columns are present before scaling
-    columns_to_scale = ['amt', 'city_pop', 'merch_lat', 'merch_long', 'age', 'distance', 
-                        'merchant_freq', 'transaction_month', 'transaction_day', 
-                        'transaction_hour', 'transaction_day_of_week', 'category_freq', 
-                        'street_freq', 'city_freq', 'state_freq', 'job_freq']
+    # columns_to_scale = ['amt', 'city_pop', 'merch_lat', 'merch_long', 'age', 'distance', 
+    #                     'merchant_freq', 'transaction_month', 'transaction_day', 
+    #                     'transaction_hour', 'transaction_day_of_week', 'category_freq', 
+    #                     'street_freq', 'city_freq', 'state_freq', 'job_freq']
     
 
-    # Fill missing columns with zeros
-    for col in columns_to_scale:
-        if col not in new_data2.columns:
-            new_data2[col] = 0
+    # # Fill missing columns with zeros
+    # for col in columns_to_scale:
+    #     if col not in new_data2.columns:
+    #         new_data2[col] = 0
     
-    print("Final prediction data columns:", new_data2.columns)
+    # print("Final prediction data columns:", new_data2.columns)
 
     
     # Scale features
-    new_data2[columns_to_scale] = scaler.transform(new_data2[columns_to_scale])
+    scaler1 = RobustScaler()
+    new_data2 = scaler1.fit_transform(new_data2)
 
     # Make prediction
     prediction = model.predict(new_data2)
@@ -166,3 +162,4 @@ def predict():
 
 if __name__ == "__main__":
     app.run(debug=True)
+    

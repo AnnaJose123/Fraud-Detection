@@ -70,17 +70,12 @@ for i in dt[['gender_F', 'gender_M', 'transaction_time_of_day_Afternoon',
        'transaction_time_of_day_Night']]:
        dt[i]=dt[i].astype(int)
 
-       
-# Frequency encoding
-def frequency_encoding(dt, columns):
-    for col in columns:
-        freq_encoding = dt[col].value_counts().to_dict()
-        dt[f'{col}_freq'] = dt[col].map(freq_encoding)
-    return dt
 
-F_enc = ['merchant', 'category', 'street', 'city', 'state', 'job']
-dt = frequency_encoding(dt, F_enc)
-dt.drop(columns=F_enc, inplace=True)
+    # Frequency encoding
+categorical_col=['merchant', 'category', 'street', 'city', 'state', 'job']
+for col in categorical_col:
+        frequency_encoding = dt[col].value_counts()
+        dt[col] = dt[col].map(frequency_encoding)
 
 
 
